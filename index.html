@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>ToDo App</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- メインビュー -->
+  <div id="app">
+
+    <!-- タブヘッダー -->
+    <div class="tab-header" id="tabHeader">
+      <button class="tab-btn active" data-tab="tasks">タスク</button>
+      <button class="tab-btn" data-tab="events">イベント</button>
+    </div>
+
+    <!-- タスクビュー -->
+    <div id="tasksView" class="view active">
+      <div class="view-header">
+        <h2>本日のタスク</h2>
+        <span class="task-count" id="taskCount">0</span>
+      </div>
+      <div class="task-list" id="taskList">
+        <!-- 動的に追加 -->
+      </div>
+      <div class="empty-state" id="taskEmpty">
+        <div class="empty-icon">📋</div>
+        <p>タスクはありません</p>
+        <p class="empty-sub">右下の＋ボタンから追加できます</p>
+      </div>
+    </div>
+
+    <!-- イベントビュー -->
+    <div id="eventsView" class="view">
+      <div class="view-header">
+        <h2>直近のイベント</h2>
+        <span class="task-count" id="eventCount">0</span>
+      </div>
+      <div class="task-list" id="eventList">
+        <!-- 動的に追加 -->
+      </div>
+      <div class="empty-state" id="eventEmpty">
+        <div class="empty-icon">📅</div>
+        <p>イベントはありません</p>
+        <p class="empty-sub">右下の＋ボタンから追加できます</p>
+      </div>
+    </div>
+
+    <!-- FAB (新規作成ボタン) -->
+    <button class="fab" id="fabBtn" title="新規作成">＋</button>
+
+    <!-- メニューバー (下部ナビ) -->
+    <div class="bottom-nav" id="bottomNav">
+      <button class="nav-btn active" data-nav="tasks" title="タスク">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">タスク</span>
+      </button>
+      <button class="nav-btn" data-nav="events" title="イベント">
+        <span class="nav-icon">📅</span>
+        <span class="nav-label">イベント</span>
+      </button>
+      <button class="nav-btn" data-nav="completed" title="完了済み">
+        <span class="nav-icon">✅</span>
+        <span class="nav-label">完了</span>
+      </button>
+      <button class="nav-btn" data-nav="settings" title="設定">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">設定</span>
+      </button>
+    </div>
+
+    <!-- 完了済みビュー -->
+    <div id="completedView" class="view">
+      <div class="view-header">
+        <h2>完了済み</h2>
+        <span class="task-count" id="completedCount">0</span>
+        <button class="clear-btn" id="clearCompletedBtn" title="全て削除">🗑️</button>
+      </div>
+      <div class="task-list" id="completedList">
+        <!-- 動的に追加 -->
+      </div>
+      <div class="empty-state" id="completedEmpty">
+        <div class="empty-icon">🎉</div>
+        <p>完了したタスクはまだありません</p>
+      </div>
+    </div>
+
+    <!-- 設定ビュー -->
+    <div id="settingsView" class="view">
+      <div class="view-header">
+        <h2>設定</h2>
+      </div>
+      <div class="settings-content">
+        <div class="settings-section">
+          <h3>ジャンル設定</h3>
+          <div id="genreSettings">
+            <!-- 動的に生成 -->
+          </div>
+          <div class="add-genre-row">
+            <input type="text" id="newGenreName" placeholder="新しいジャンル名" maxlength="20">
+            <input type="color" id="newGenreColor" value="#4A90D9">
+            <button id="addGenreBtn" class="small-btn">追加</button>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>一般設定</h3>
+          <label class="setting-item">
+            <span>自動完了（イベント期限切れ）</span>
+            <input type="checkbox" id="autoCompleteSetting" checked>
+          </label>
+          <label class="setting-item">
+            <span>確認ダイアログを表示</span>
+            <input type="checkbox" id="confirmDialogSetting" checked>
+          </label>
+          <label class="setting-item">
+            <span>科目名を表示</span>
+            <input type="checkbox" id="showSubjectSetting" checked>
+          </label>
+        </div>
+        <div class="settings-section">
+          <h3>データ管理</h3>
+          <button id="exportDataBtn" class="small-btn">データをエクスポート</button>
+          <button id="importDataBtn" class="small-btn">データをインポート</button>
+          <input type="file" id="importFileInput" accept=".json" style="display:none">
+          <button id="resetDataBtn" class="small-btn danger-btn">全てリセット</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 新規作成モーダル -->
+    <div class="modal-overlay" id="createModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>新規作成</h2>
+          <button class="modal-close" id="modalClose">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-tabs">
+            <button class="modal-tab-btn active" data-type="task">タスク</button>
+            <button class="modal-tab-btn" data-type="event">イベント</button>
+          </div>
+
+          <!-- 共通フィールド -->
+          <div class="form-group">
+            <label>タイトル <span class="required">*</span></label>
+            <input type="text" id="itemTitle" placeholder="例: 情報システム基礎演習 レポート" maxlength="100">
+          </div>
+
+          <div class="form-group">
+            <label>ジャンル</label>
+            <div class="genre-select" id="genreSelect">
+              <!-- 動的に生成 -->
+            </div>
+          </div>
+
+          <!-- タスク用フィールド -->
+          <div id="taskFields">
+            <div class="form-group">
+              <label>科目名 <span class="optional">(任意)</span></label>
+              <input type="text" id="taskSubject" placeholder="例: 情報システム基礎演習" maxlength="50">
+            </div>
+            <div class="form-group">
+              <label>提出場所 <span class="optional">(任意)</span></label>
+              <input type="text" id="taskLocation" placeholder="例: Teams / LMS" maxlength="50">
+            </div>
+            <div class="form-group">
+              <label>期限</label>
+              <input type="date" id="taskDueDate">
+            </div>
+          </div>
+
+          <!-- イベント用フィールド -->
+          <div id="eventFields" style="display:none;">
+            <div class="form-group">
+              <label>科目名 <span class="optional">(任意)</span></label>
+              <input type="text" id="eventSubject" placeholder="例: 情報システム基礎演習" maxlength="50">
+            </div>
+            <div class="form-group">
+              <label>開始日</label>
+              <input type="date" id="eventStartDate">
+            </div>
+            <div class="form-group">
+              <label>終了日</label>
+              <input type="date" id="eventEndDate">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" id="modalCancel">キャンセル</button>
+          <button class="btn-primary" id="modalSave">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 編集モーダル -->
+    <div class="modal-overlay" id="editModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>タスクを編集</h2>
+          <button class="modal-close" id="editModalClose">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>タイトル <span class="required">*</span></label>
+            <input type="text" id="editTitle" maxlength="100">
+          </div>
+          <div class="form-group">
+            <label>ジャンル</label>
+            <div class="genre-select" id="editGenreSelect"></div>
+          </div>
+          <div class="form-group" id="editSubjectGroup">
+            <label>科目名</label>
+            <input type="text" id="editSubject" maxlength="50">
+          </div>
+          <div class="form-group" id="editLocationGroup">
+            <label>提出場所</label>
+            <input type="text" id="editLocation" maxlength="50">
+          </div>
+          <div class="form-group" id="editDueDateGroup">
+            <label>期限</label>
+            <input type="date" id="editDueDate">
+          </div>
+          <div class="form-group" id="editStartDateGroup" style="display:none;">
+            <label>開始日</label>
+            <input type="date" id="editStartDate">
+          </div>
+          <div class="form-group" id="editEndDateGroup" style="display:none;">
+            <label>終了日</label>
+            <input type="date" id="editEndDate">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-danger" id="editDeleteBtn">削除</button>
+          <button class="btn-cancel" id="editModalCancel">キャンセル</button>
+          <button class="btn-primary" id="editModalSave">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
